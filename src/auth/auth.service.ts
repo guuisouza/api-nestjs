@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException
+} from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { User } from '@prisma/client'
 import { PrismaService } from 'src/prisma/prisma.service'
@@ -7,6 +11,9 @@ import { UserService } from 'src/user/user.service'
 
 @Injectable()
 export class AuthService {
+  private issuer = 'login'
+  private audience = 'users'
+
   constructor(
     private readonly JWTService: JwtService,
     private readonly prisma: PrismaService,
@@ -24,16 +31,35 @@ export class AuthService {
         {
           expiresIn: '7 days',
           subject: String(user.id),
-          issuer: 'login',
-          audience: 'users'
+          issuer: this.issuer,
+          audience: this.audience
         }
       )
     }
   }
 
-  // async checkToken(token: string) {
-  //   // return this.JWTService.verify()
-  // }
+  async checkToken(token: string) {
+    try {
+      const data = await this.JWTService.verify(token, {
+        issuer: this.issuer,
+        audience: this.audience
+      })
+
+      return data
+    } catch (error) {
+      throw new BadRequestException(error)
+    }
+  }
+
+  async isValidToken(token: string) {
+    try {
+      this.checkToken(token)
+      return true
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+      return false
+    }
+  }
 
   async login(email: string, password: string) {
     const user = await this.prisma.user.findFirst({
@@ -49,6 +75,7 @@ export class AuthService {
 
     return this.createToken(user)
   }
+
   async forget(email: string) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -63,6 +90,7 @@ export class AuthService {
     // TO DO: Enviar o email para troca de senha...
     return true
   }
+
   async reset(password: string, token: string) {
     // TO DO: Validar o token
 
