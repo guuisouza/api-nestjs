@@ -1,14 +1,15 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
-import { Observable } from 'rxjs'
 import { AuthService } from 'src/auth/auth.service'
+import { UserService } from 'src/user/user.service'
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService
+  ) {}
 
-  canActivate(
-    context: ExecutionContext
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest()
     const { authorization } = request.headers
 
@@ -18,6 +19,8 @@ export class AuthGuard implements CanActivate {
       )
 
       request.tokenPayload = data
+
+      request.user = await this.userService.showById(data.id)
 
       return true
     } catch (e) {
