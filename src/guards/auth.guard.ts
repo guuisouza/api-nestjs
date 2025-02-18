@@ -23,8 +23,8 @@ export class AuthGuard implements CanActivate {
       request.user = await this.userService.showById(data.id)
 
       return true
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
-      console.log(e)
       return false
     }
   }
