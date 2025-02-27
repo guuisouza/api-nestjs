@@ -4,6 +4,8 @@ import { AuthController } from './auth.controller'
 import { UserModule } from 'src/user/user.module'
 import { AuthService } from './auth.service'
 import { FileModule } from 'src/file/file.module'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { UserEntity } from 'src/user/entity/user.entity'
 
 @Module({
   imports: [
@@ -11,7 +13,8 @@ import { FileModule } from 'src/file/file.module'
       secret: process.env.JWT_SECRET_KEY
     }),
     forwardRef(() => UserModule),
-    FileModule
+    FileModule,
+    TypeOrmModule.forFeature([UserEntity])
   ],
   controllers: [AuthController],
   providers: [AuthService],
